@@ -1,0 +1,23 @@
+#!/bin/bash
+
+source $WS_CFG_PATH/ws-shared
+
+main () {
+	_ws_log verbose "Checking if script is installed properly ..."
+	
+	local exit_code=0
+	if which moiety > /dev/null; then
+		moiety help 2>&1 > /dev/null
+		if [ 1 -lt $? ]; then
+			_ws_log error "Could not call 'moiety help'."
+			exit_code=127
+		fi
+	else
+		_ws_log error "Could not find 'moiety'. Installtion of 'moiety' seems corrupted."
+		exit_code=127
+	fi
+
+	return exit_code
+}
+
+main $*
