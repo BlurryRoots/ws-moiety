@@ -309,32 +309,40 @@ moiety-module () {
 	local cmd="$1"
 	shift
 
-	local rv=0
-	case $cmd in
-		help)
-			moiety-module-help
-			rv=$?
-		;;
-
-		create)
-			if ! moiety-module-create $*; then
+	pushd "bare" > /dev/null
+		local rv=0
+		case $cmd in
+			help)
+				moiety-module-help
 				rv=$?
-			fi
-		;;
+			;;
 
-		status)
-			local repo_path="$1"
-			shift
+			create)
+				if ! moiety-module-create $*; then
+					rv=$?
+				fi
+			;;
 
-			if [ -e $repo_path/refs/heads ]; then
-				echo "$(basename $repo_path) seems to have heads:"
-				ls $repo_path/refs/heads
-			else
-				echo "Module not found."
-			fi
+			status)
+				if [ $# -lt 1 ]; then
+					echo "Module name missing."
+					moiety-module-help
+					return -3
+				fi
 
-		;;
-	esac
+				local repo_path="$1"
+				shift
+
+				if [ -e $repo_path/refs/heads ]; then
+					echo "$(basename $repo_path) seems to have heads:"
+					ls $repo_path/refs/heads
+				else
+					echo "Module '$repo_path' not found."
+				fi
+
+			;;
+		esac
+	popd > /dev/null
 
 	return $rv
 }
@@ -352,6 +360,15 @@ moiety-help () {
 
 main () {
 	if [ $# -lt 1 ]; then
+		echo "Expecting server path."
+		moiety-server-help
+		return 13
+	fi
+	local server_path="$1"
+	shift
+
+	if [ $# -lt 1 ]; then
+		echo "Command missing."
 		moiety-help
 		return -33
 	fi
@@ -359,37 +376,29 @@ main () {
 	local cmd="$1"
 	shift
 
-	local rv=0
-	case $cmd in
-		help|h )
-			moiety-help
-			rv=$?
-		;;
-
-		module)
-			if ! moiety-module $*; then
+	pushd "$server_path" > /dev/null
+		local rv=0
+		case $cmd in
+			help|h )
+				moiety-help
 				rv=$?
-			fi
-		;;
+			;;
 
-		server)
-			if [ $# -lt 1 ]; then
-				echo "Expecting server path."
-				moiety-server-help
-				return 13
-			fi
-			local server_path="$1"
-			shift
+			module)
+				if ! moiety-module $*; then
+					rv=$?
+				fi
+			;;
 
-			pushd "$server_path" > /dev/null
+			server)
 				echo "Looking for moiety setup in \"$(pwd)\" ..."
 				if ! moiety-module-server $*; then
 					echo "Could not setup moiety."
 					rv=$?
 				fi
-			popd > /dev/null
-		;;
-	esac
+			;;
+		esac
+	popd > /dev/null
 
 	return $rv
 }
