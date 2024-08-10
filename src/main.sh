@@ -34,6 +34,9 @@ moiety-module-lfs-server-start () {
 	LFS_ADMINUSER="local"
 	LFS_ADMINPASS="local"
 
+	# Make sure lfs cache path exists.
+	mkdir -p "${LFS_CONTENTPATH}"
+
 	local rv=0
 	pushd "$(moiety-modules-root-path)/.LFS" > /dev/null
 		export LFS_LISTEN LFS_HOST LFS_METADB LFS_CONTENTPATH LFS_ADMINUSER LFS_ADMINPASS; \

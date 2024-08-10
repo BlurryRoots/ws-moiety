@@ -2,6 +2,8 @@
 
 Tool for managing local git repository proxies (aka modules), including LFS stash.
 
+Uses d4ced45 version of lfs server.
+
 ## Basic structure
 
 The root directory of a moiety project should look like:
