@@ -369,11 +369,22 @@ moiety-help () {
 main () {
 	if [ $# -lt 1 ]; then
 		echo "Expecting server path."
-		moiety-server-help
+		moiety-help
 		return 13
 	fi
 	local server_path="$1"
 	shift
+
+	# Ugly structure.
+	case $server_path in
+		help|h )
+			if ! moiety-help; then
+				return -13
+			fi
+
+			return 0
+		;;
+	esac
 
 	if [ $# -lt 1 ]; then
 		echo "Command missing."
@@ -384,29 +395,32 @@ main () {
 	local cmd="$1"
 	shift
 
-	pushd "$server_path" > /dev/null
-		local rv=0
-		case $cmd in
-			help|h )
-				moiety-help
+	local rv=0
+	case $cmd in
+		help|h )
+			if ! moiety-help; then
 				rv=$?
-			;;
+			fi
+		;;
 
-			module)
+		module)
+			pushd "$server_path" > /dev/null
 				if ! moiety-module $*; then
 					rv=$?
 				fi
-			;;
+			popd > /dev/null
+		;;
 
-			server)
+		server)
+			pushd "$server_path" > /dev/null
 				echo "Looking for moiety setup in \"$(pwd)\" ..."
 				if ! moiety-module-server $*; then
 					echo "Could not setup moiety."
 					rv=$?
 				fi
-			;;
-		esac
-	popd > /dev/null
+			popd > /dev/null
+		;;
+	esac
 
 	return $rv
 }
