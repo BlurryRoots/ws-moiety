@@ -37,12 +37,14 @@ moiety-module-lfs-server-start () {
 	# Make sure lfs cache path exists.
 	mkdir -p "${LFS_CONTENTPATH}"
 
+	local log_location="$(pwd)/logs"
+
 	local rv=0
 	pushd "$(moiety-modules-root-path)/.LFS" > /dev/null
 		export LFS_LISTEN LFS_HOST LFS_METADB LFS_CONTENTPATH LFS_ADMINUSER LFS_ADMINPASS; \
 			./lfs-test-server \
-				> $HOME/Workspace/Modules/.LFS/lfs.log \
-				2> $HOME/Workspace/Modules/.LFS/lfs.err&
+				 > "$log_location/lfs.log" \
+				2> "$log_location/lfs.err"&
 		if [ $? = 0 ]; then
 			local lfs_server_pid="$!"
 			echo "LFS server started with $lfs_server_pid."
@@ -101,7 +103,7 @@ moiety-module-git-server-start () {
 	/usr/lib/git-core/git-daemon --verbose --export-all \
 		--base-path="$(pwd)/$bare_repos_root" --reuseaddr \
 		--enable=receive-pack ${f[@]} \
-		> git.log 2> git.err &
+		> logs/git.log 2> logs/git.err &
 	local git_server_pid="$!"
 
 	if [ $? = 0 ]; then
@@ -153,6 +155,9 @@ moiety-module-server-start () {
 
 		return 13
 	fi
+
+	echo "Preparing log file location ..."
+	mkdir -p logs
 
 	echo "Starting LFS server ..."
 	#.LFS/./start.sh
